@@ -3,20 +3,18 @@ from flask_migrate import Migrate
 from models import db
 from routes import main
 from routes import hospital_routes
-from models import db
 from seed import seed_data
 
 app = Flask(__name__)
 
-
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
+
+# Use the db object that you imported and initialized from models.py
 db.init_app(app)
 migrate = Migrate(app, db)
 app.register_blueprint(main)
 app.register_blueprint(hospital_routes)
-
 
 @app.route('/')
 def index():
@@ -26,12 +24,3 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True)
-
-
-
-
-
-
-
-
-

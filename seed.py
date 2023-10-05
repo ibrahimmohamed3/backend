@@ -1,9 +1,10 @@
 from flask import Flask
-from models import Hospital, Medicine, Diagnosis, db
+from models import Patient, Doctor, Review, Hospital, Medicine, Diagnosis, db
 from faker import Faker
 import random
 
 app = Flask(__name__)
+
 # Initialize your Flask app and database
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -12,12 +13,53 @@ fake = Faker()
 
 def seed_data():
     with app.app_context():
+        # Generate sample patients
+        print("Seeding patients...")
+        for _ in range(5):
+            patient = Patient(
+                name=fake.name(),
+                
+                email=fake.email(),
+                
+                
+                phone_numbers=fake.phone_number(),
+                
+                
+            )
+            db.session.add(patient)
+            db.session.commit()
+
+        # Generate sample doctors
+        print("Seeding doctors...")
+        for _ in range(3):
+            doctor = Doctor(
+                name=fake.name(),
+                username=fake.user_name(),
+                email=fake.email(),
+                password=fake.password()
+            )
+            db.session.add(doctor)
+            db.session.commit()
+
+        # Generate sample reviews
+        print("Seeding reviews...")
+        for patient in Patient.query.all():
+            for _ in range(2):
+                review = Review(
+                    rating=random.uniform(1, 5),
+                    comment=fake.text(),
+                    patient_id=patient.id
+                )
+                db.session.add(review)
+                db.session.commit()
+
         # Sample towns in Nairobi, Kisumu, and Mombasa
         towns_nairobi = ['Karen', 'Westlands', 'Kileleshwa', 'Runda', 'CBD']
         towns_kisumu = ['Kisumu Central', 'Nyalenda', 'Mamboleo', 'Nyamasaria', 'Kisian']
         towns_mombasa = ['Nyali', 'Mombasa Island', 'Bamburi', 'Likoni', 'Kiembeni']
-        print("Seeding hospitals...")
+
         # Generate sample hospitals with related details
+        print("Seeding hospitals...")
         for i in range(5):
             # Randomly select a town from Nairobi, Kisumu, or Mombasa
             if i < 2:
@@ -29,11 +71,12 @@ def seed_data():
             # Generate the hospital object
             hospital = Hospital(
                 name=fake.company(),
-                address=location,  # Assuming 'location' is the address
+                location=location,
                 contact=fake.phone_number()
             )
             db.session.add(hospital)
             db.session.commit()
+
             # Generate sample medicines associated with the hospital
             for _ in range(3):
                 medicine = Medicine(
@@ -45,19 +88,8 @@ def seed_data():
                 )
                 db.session.add(medicine)
                 db.session.commit()
-                print(f"Seeding diagnoses for hospital: {hospital.name} in {hospital.address}")
-                # Generate sample diagnoses associated with the hospital
-                for _ in range(2):
-                    medicine = random.choice(hospital.medicines)
-                    diagnosis = Diagnosis(
-                        patient_id=fake.random_int(min=100, max=999),
-                        diagnosis=fake.sentence(),
-                        medicine_id=medicine.id,
-                        hospital_id=hospital.id
-                    )
-                    db.session.add(diagnosis)
-                    db.session.commit()
-            print(f"Generated hospital: {hospital.name} in {hospital.address}")
+
+               
         print("Data seeding completed.")
 
 if __name__ == '__main__':

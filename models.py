@@ -7,25 +7,9 @@ db = SQLAlchemy()
 class Patient(db.Model):
     id = Column(Integer, primary_key=True)
     name = Column(String)
-    username = Column(String)
     email = Column(String)
-    password = Column(String)
-    role = Column(String, default='patient')  
-    date_of_birth = Column(Date)
-    phone_numbers = Column(String)
-    address = Column(String)
-    medical_history = Column(String)
-    emergency_contact_name = Column(String)
-    emergency_contact_relationship = Column(String)
-    emergency_contact_phone = Column(String)
-    insurance_provider = Column(String)
-    policy_number = Column(String)
-    appointment_history = Column(String)
-    notes_comments = Column(String)
-    health_goals = Column(String)
-    preferences = Column(String)
-    allergies = Column(String)
-    current_medications = Column(String)
+    phone_numbers = Column(Integer)
+    
 
 
 class Doctor(db.Model):
@@ -74,11 +58,14 @@ class Medicine(db.Model):
 
 class Diagnosis(db.Model):
     __tablename__ = 'diagnoses'
-    id = db.Column(db.Integer, primary_key=True)
-    patient_id = db.Column(db.Integer, nullable=False)
-    diagnosis = db.Column(db.Text, nullable=False)
-    medicine_id = db.Column(db.Integer, db.ForeignKey('medicines.id'), nullable=False)
-    hospital_id = db.Column(db.Integer, db.ForeignKey('hospitals.id'), nullable=False)
+    id = Column(Integer, primary_key=True)
+    patient_id = Column(Integer, ForeignKey('patient.id'), nullable=False)  # Correct ForeignKey reference
+    diagnosis = Column(String)  # Updated data type to String for simplicity
+    medicine_id = Column(Integer, ForeignKey('medicines.id'), nullable=False)
+    hospital_id = Column(Integer, ForeignKey('hospitals.id'), nullable=False)
+
+    # Define a relationship with the Patient model
+    patient = relationship('Patient', backref='diagnoses')
 
     def __repr__(self):
         return f'<Diagnosis {self.diagnosis}>'

@@ -17,15 +17,6 @@ def list_endpoints():
     """List all available endpoints."""
     endpoints = {
         'GET /': url_for('main.list_endpoints', _external=True),
-        'GET /reviews': url_for('main.get_reviews', _external=True),
-        'GET /reviews/<int:review_id>': url_for('main.get_review', review_id=1, _external=True),
-        'POST /add_review': url_for('main.add_review', _external=True),
-        'GET /doctors': url_for('main.get_doctors', _external=True),
-        'GET /doctors/<int:doctor_id>': url_for('main.get_doctor', doctor_id=1, _external=True),
-        'POST /add_doctor': url_for('main.add_doctor', _external=True),
-        'DELETE /doctors/<int:doctor_id>': url_for('main.delete_doctor', doctor_id=1, _external=True),
-        'PUT /doctors/<int:doctor_id>': url_for('main.update_doctor', doctor_id=1, _external=True),
-        'GET /patients': url_for('main.get_patients', _external=True),
         'GET /patients/<int:patient_id>': url_for('main.get_patient', patient_id=1, _external=True),
         'POST /create_patient': url_for('main.create_patient', _external=True),
         'PUT /patients/<int:patient_id>': url_for('main.update_patient', patient_id=1, _external=True)
@@ -242,50 +233,15 @@ def create_patient():
     data = request.get_json()
 
     name = data.get('name')
-    username = data.get('username')
     email = data.get('email')
-    password = data.get('password')
-
-    #  to convert dateofbirth to a Python date object
-    date_of_birth_str = data.get('date_of_birth')
-    date_of_birth = datetime.strptime(date_of_birth_str, '%Y-%m-%d').date()
-
     phone_numbers = data.get('phone_numbers')
-    address = data.get('address')
-    medical_history = data.get('medical_history')
-    emergency_contact_name = data.get('emergency_contact_name')
-    emergency_contact_relationship = data.get('emergency_contact_relationship')
-    emergency_contact_phone = data.get('emergency_contact_phone')
-    insurance_provider = data.get('insurance_provider')
-    policy_number = data.get('policy_number')
-    appointment_history = data.get('appointment_history')
-    notes_comments = data.get('notes_comments')
-    health_goals = data.get('health_goals')
-    preferences = data.get('preferences')
-    allergies = data.get('allergies')
-    current_medications = data.get('current_medications')
-
+    
     new_patient = Patient(
         name=name,
-        username=username,
         email=email,
-        password=password,
-        role='patient' ,
-        date_of_birth=date_of_birth,
         phone_numbers=phone_numbers,
-        address=address,
-        medical_history=medical_history,
-        emergency_contact_name=emergency_contact_name,
-        emergency_contact_relationship=emergency_contact_relationship,
-        emergency_contact_phone=emergency_contact_phone,
-        insurance_provider=insurance_provider,
-        policy_number=policy_number,
-        appointment_history=appointment_history,
-        notes_comments=notes_comments,
-        health_goals=health_goals,
-        preferences=preferences,
-        allergies=allergies,
-        current_medications=current_medications
+        
+        
     )
 
     db.session.add(new_patient)
@@ -323,8 +279,30 @@ hospital_routes = Blueprint('hospital_routes', __name__)
 @hospital_routes.route('/hospitals', methods=['GET'])
 def get_hospitals():
     hospitals = Hospital.query.all()
-    hospital_list = [{'id': hospital.id, 'name': hospital.name, 'address': hospital.address, 'contact': hospital.contact} for hospital in hospitals]
+    hospital_list = [{'id': hospital.id, 'name': hospital.name, 'location': hospital.location, 'contact': hospital.contact} for hospital in hospitals]
     return jsonify({'hospitals': hospital_list})
+
+@hospital_routes.route('/hospitals/location/<string:location>', methods=['GET'])
+def get_hospitals_by_location(location):
+    # Query hospitals with the specified location
+    hospitals = Hospital.query.filter_by(location=location).all()
+
+    # Check if any hospitals were found
+    if hospitals:
+        # Create a list of dictionaries with hospital information
+        hospital_list = []
+        for hospital in hospitals:
+            hospital_info = {
+                'id': hospital.id,
+                'name': hospital.name,
+                'location': hospital.location,
+                'contact': hospital.contact
+            }
+            hospital_list.append(hospital_info)
+        return jsonify({'hospitals': hospital_list})
+    else:
+        # Return a 404 error if no hospitals are found with the specified location
+        return jsonify({'error': 'No hospitals found for the location'}), 404
 
 @hospital_routes.route('/hospitals/<int:hospital_id>', methods=['GET'])
 def get_hospital(hospital_id):
